@@ -1,0 +1,11 @@
+Order No. 1
+Client: 3, Total price: 1795.000000
+
+Products:
+Fresh Corn Tortillas, Quantity: 18, Price: 1422.000000
+Veal Stock, Quantity: 3, Price: 63.000000
+Cauliflower Purée and Caviar on Cloverleaf Potato Chips, Quantity: 1, Price: 74.000000
+Asian Cabbage Salad, Quantity: 1, Price: 37.000000
+Chipotle Tomato Salsa, Quantity: 1, Price: 98.000000
+Restorative Beef Broth, Quantity: 1, Price: 58.000000
+Coconut Water and Lime Rickey, Quantity: 1, Price: 43.000000

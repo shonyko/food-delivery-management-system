@@ -1,0 +1,134 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:fragment="content(args)" th:remove="tag">
+  <div class="container-fluid">
+    <div id="modal"></div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h4 class="card-title ">Orders</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table id="myDataTable" class="table w-100"></table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(_ => {
+      setTimeout(_ => {
+        const $table = $('#myDataTable');
+        const table = $table.DataTable({
+          "pageLength": 15,
+          "lengthChange": false,
+          "searching": false,
+          "select": true,
+          "ajax": {
+            url: "/api/employee/orders",
+            type: "GET",
+            dataSrc: function (json) {
+              if(!json.success) {
+                showNotification(json);
+                return [];
+              }
+
+              return json.data;
+            }
+          },
+          "columns": [
+            { "data": "id", "name": "id", "title": "ID", "width": "40", visible: false },
+            { "data": "date", "name": "date", "title": "Data" },
+            { "data": "clientId", "name": "clientId", "title": "Client Id" }
+          ],
+          dom: "<'row'<'col-sm-6 dataTables_crud_buttons'><'col-sm-6 dataTables_buttons text-right'B>>" +
+                  "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+          buttons: []
+        });
+
+        table.on( 'select.dt deselect.dt draw.dt', function ( e, dt, type, indexes ) {
+          table.buttons( 1, ['.edit', '.delete'] ).enable(
+                  table.rows( { selected: true } ).indexes().length === 0 ? false : true );
+        });
+
+        new $.fn.dataTable.Buttons( table, {
+          buttons: [
+            { text: "Detalii", className: "btn btn-primary edit", action: function(e, dt, node, action) {getDetails(dt);} }
+          ]
+        } );
+
+        table.buttons( 1, null ).container().prependTo(
+                $(table.table().container()).find(".dataTables_crud_buttons")
+        );
+
+        function getDetails(t) {
+          let target = t.rows({selected: true});
+          if(target && target.data()[0]) {
+            target = target.data()[0];
+            $.ajax({
+              type: "GET",
+              url: "/employee/orders/" + target['id'],
+              dataType: 'json',
+              success: function (response) {
+                console.log(response);
+                if (response.redirect) {
+                  window.location.href = response.redirect;
+                  return;
+                }
+
+                $("#modal").html(response.data);
+
+                const $modal = document.getElementById('exampleModal');
+                const modal = new bootstrap.Modal($modal);
+                modal.show();
+              },
+              error: function (xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          }
+        }
+
+        /// PUSH NOTIFICATIONS-ISH
+        let stompClient = null;
+
+        function connect() {
+          const socket = new SockJS("/gs-guide-websocket");
+          stompClient = Stomp.over(socket);
+          stompClient.connect({}, frame => {
+            console.log(`Connected: ${frame}`);
+            stompClient.subscribe("/employees", msg => {
+              const response = JSON.parse(msg.body);
+              table.ajax.reload(false, null);
+              showNotification(response);
+            })
+          })
+        }
+
+        function disconnect() {
+          if(stompClient !== null) {
+            stompClient.disconnect();
+          }
+          console.log("Disconnected");
+        }
+
+        connect();
+
+        setClear(_ => {
+          disconnect();
+        });
+
+      }, 0);
+    });
+    /*]]>*/
+  </script>
+</div>
+</html>

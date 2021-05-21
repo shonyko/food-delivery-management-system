@@ -1,0 +1,8 @@
+Order No. 2
+Client: 3, Total price: 189.000000
+
+Products:
+Cauliflower-Leek Purée, Quantity: 1, Price: 13.000000
+Beef Stock, Quantity: 1, Price: 26.000000
+Spicy Pickled Shallots, Quantity: 1, Price: 78.000000
+Master Stock Chicken, Quantity: 1, Price: 72.000000

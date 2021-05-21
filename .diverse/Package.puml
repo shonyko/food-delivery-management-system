@@ -1,0 +1,17 @@
+@startuml
+
+package "businessLayer" {
+    package "models" {}
+}
+
+package "dataLayer" {
+}
+
+package "presentationLayer" {
+    package "api" {}
+}
+
+"businessLayer" --> "dataLayer" : use
+"presentationLayer" --> "businessLayer" : use
+
+@enduml

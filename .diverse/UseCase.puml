@@ -1,0 +1,29 @@
+@startuml
+
+Admin -> (Logare)
+Admin --> (Importare produse)
+Admin -> (Operatii CRUD cu produse)
+Admin -> (Generare rapoarte)
+
+(Importare produse)         ....> (Logare) :includes
+(Operatii CRUD cu produse)  ....> (Logare) :includes
+(Generare rapoarte)         ....> (Logare) :includes
+
+Angajat -> (Logare)
+Angajat -> (Primeste notificare)
+Angajat -> (Vizualizare comenzi)
+
+(Primeste notificare)   ...> (Logare) :includes
+(Vizualizare comenzi)   ...> (Logare) :includes
+
+Client ---> (Logare)
+Client --> (Inregistrare)
+Client --> (Vizualizare produse)
+Client --> (Selectare produse)
+Client --> (Plasarea comenzii)
+
+(Logare)               .> (Inregistrare) :includes
+(Vizualizare produse)  .> (Logare) :includes
+(Plasarea comenzii)    .> (Logare) :includes
+
+@enduml

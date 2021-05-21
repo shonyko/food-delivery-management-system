@@ -1,0 +1,111 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:fragment="content(args)" th:remove="tag">
+  <div class="container-fluid">
+    <div id="modal"></div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h4 class="card-title ">Cosul dvs. de cumparaturi</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table id="myDataTable" class="table w-100"></table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(_ => {
+      /// INIT TABLE
+      setTimeout(_ => {
+        const $table = $('#myDataTable');
+        const table = $table.DataTable({
+          "pageLength": 15,
+          "lengthChange": false,
+          "searching": false,
+          "select": true,
+          "ajax": {
+            url: "/api/customer/cart",
+            type: "GET",
+            dataSrc: function (json) {
+              if(!json.success) {
+                showNotification(json);
+                return [];
+              }
+
+              return json.data;
+            }
+          },
+          "columns": [
+            { "data": "id", "name": "id", "title": "ID", "width": "40", visible: false },
+            { "data": "title", "name": "title", "title": "Nume" },
+            { "data": "rating", "name": "rating", "title": "Rating" },
+            { "data": "calories", "name": "calories", "title": "Calorii" },
+            { "data": "protein", "name": "protein", "title": "Proteine" },
+            { "data": "fat", "name": "fat", "title": "Grasimi" },
+            { "data": "sodium", "name": "sodium", "title": "Sodiu" },
+            { "data": "quantity", "name": "quantity", "title": "Cantitate" },
+            { "data": "price", "name": "price", "title": "Pret" }
+          ],
+          dom: "<'row'<'col-sm-6 dataTables_crud_buttons'><'col-sm-6 dataTables_buttons text-right'B>>" +
+                  "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+          buttons: [
+            { text: "Order", className: "btn btn-primary ml-1", action: function(e, dt, node, action) {order(dt);} }
+          ]
+        });
+
+        table.on( 'select.dt deselect.dt draw.dt', function ( e, dt, type, indexes ) {
+          table.buttons( 1, ['.delete'] ).enable(
+                  table.rows( { selected: true } ).indexes().length === 0 ? false : true );
+        });
+
+        new $.fn.dataTable.Buttons( table, {
+          buttons: [
+            { text: "Delete", className: "btn btn-primary ml-1 delete", action: function(e, dt, node, action) {deleteUser(dt);}, attr: {disabled: true} }
+          ]
+        } );
+
+        table.buttons( 1, null ).container().prependTo(
+                $(table.table().container()).find(".dataTables_crud_buttons")
+        );
+
+        function order(t) {
+          $.ajax({
+            type: "POST",
+            url: "/api/customer/order/",
+            dataType: 'json',
+            success: (response) => { submitCallback(t, response); },
+            error: function(xhr, textStatus, errorThrown) {
+              alert('Error! Status = ' + xhr.status);
+            }
+          });
+        }
+        function deleteUser(t) {
+          let target = t.rows({selected: true});
+          if(target && target.data()[0]) {
+            target = target.data()[0];
+            $.ajax({
+              type: "DELETE",
+              url: "/api/customer/cart/" + target['id'],
+              dataType: 'json',
+              success: (response) => { submitCallback(t, response); },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          }
+        }
+      }, 0);
+    });
+    /*]]>*/
+  </script>
+</div>
+</html>

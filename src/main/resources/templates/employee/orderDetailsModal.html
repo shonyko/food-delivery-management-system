@@ -1,0 +1,80 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:remove="tag">
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">
+            <!--/*@thymesVar id="title" type="java.lang.String"*/-->
+            <th:block th:text="${title}"/>
+          </h5>
+          <button id="closeBtn" type="button" class="close" data-bs-toggle="modal" data-bs-target="#exampleModal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <label for="closeBtn"></label>
+        </div>
+        <form id="changeForm" autocomplete="off">
+          <div id="formContainer"></div>
+          <div class="modal-body">
+            <div class="row">
+              <div id="myData" th:data-url="${url}"></div>
+              <div class="col-md-12">
+                <label class="bmd-label-floating">Produse</label>
+                <table id="messagesTable" class="table w-100"></table>
+                <script type="text/javascript">
+                  $(function () {
+                    setTimeout(_ => {
+                      const url = $('#myData').data('url');
+                      const $table = $('#messagesTable');
+                      const table = $table.DataTable({
+                        "pageLength": 15,
+                        "lengthChange": false,
+                        "searching": false,
+                        "select": false,
+                        "ordering": false,
+                        "ajax": {
+                          url: url,
+                          type: "GET",
+                          cache: false,
+                          dataSrc: function (json) {
+                            if (!json.success) {
+                              showNotification(json);
+                              return [];
+                            }
+
+                            return json.data;
+                          }
+                        },
+                        "columns": [
+                          {"data": "id", "name": "id", "title": "ID", "width": "40", visible: false},
+                          {"data": "title", "name": "title", "title": "Nume"},
+                          {"data": "quantity", "name": "quantity", "title": "Cantitate"},
+                          {"data": "rating", "name": "rating", "title": "Rating"},
+                          {"data": "calories", "name": "calories", "title": "Calorii"},
+                          {"data": "protein", "name": "protein", "title": "Proteine"},
+                          {"data": "fat", "name": "fat", "title": "Grasimi"},
+                          {"data": "sodium", "name": "sodium", "title": "Sodiu"},
+                          {"data": "price", "name": "price", "title": "Pret"}
+                        ],
+                        dom: "<'row'<'col-sm-6 dataTables_crud_buttons d-flex flex-row'><'col-sm-6 dataTables_buttons text-right'B>>" +
+                                "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
+                                "<'row'<'col-sm-12'tr>>" +
+                                "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+                        buttons: []
+                      });
+                    }, 0);
+                  });
+                </script>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</html>

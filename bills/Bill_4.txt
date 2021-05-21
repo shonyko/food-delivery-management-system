@@ -1,0 +1,5 @@
+Order No. 4
+Client: 4, Total price: 84.000000
+
+Products:
+Grog, Quantity: 3, Price: 84.000000

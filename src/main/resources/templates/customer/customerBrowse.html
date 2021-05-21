@@ -1,0 +1,369 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:fragment="content(args)" th:remove="tag">
+    <div id="modal"></div>
+  <form id="filter-form">
+  <div class="shopping">
+    <div class="filter-bar">
+      <div class="header">
+        <h3>Filtre</h3>
+      </div>
+        <div class="body">
+            <div class="filter">
+              <label>Nume</label>
+              <input id="nameFilter" name="title" type="text">
+            </div>
+            <div class="filter">
+              <label>Rating</label>
+              <input id="rating-slider" name="rating" type="text">
+            </div>
+            <div class="filter">
+              <label>Calorii</label>
+              <input id="calories-slider" name="calories" type="text">
+            </div>
+            <div class="filter">
+              <label>Proteine</label>
+              <input id="protein-slider" name="protein" type="text">
+            </div>
+            <div class="filter">
+              <label>Grasimi</label>
+              <input id="fat-slider" name="fat" type="text">
+            </div>
+            <div class="filter">
+              <label>Sodiu</label>
+              <input id="sodium-slider" name="sodium" type="text">
+            </div>
+            <div class="filter">
+              <label>Pret</label>
+              <input id="price-slider" name="price" type="text">
+            </div>
+
+          <div class="filter-btn">
+            <button class="reset">Reset</button>
+            <button class="apply">Apply</button>
+          </div>
+        </div>
+    </div>
+    <div class="display-container">
+    </div>
+  </div>
+  </form>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(_ => {
+        const scoutUrl = /*[[${scoutUrl}]]*/ null;
+        const dataUrl = /*[[${dataUrl}]]*/ null;
+        const cartUrl = /*[[${cartUrl}]]*/ null;
+        const $displayContainer = $(".shopping > .display-container");
+
+        setClear(_ => fetcher.stop());
+
+        class DataRenderer {
+            #keepGoing = false;
+            #noItems = 0;
+            #data;
+            #timeouts = [];
+
+            stop() {
+                this.#keepGoing = false;
+                for(let i = 0; i < this.#timeouts.length; i++) {
+                    clearTimeout(this.#timeouts[i]);
+                }
+            }
+
+            render(noItems, data) {
+                this.#noItems = noItems;
+                this.#data = data;
+                this.#keepGoing = true;
+
+                this.#parse(this, 0, noItems);
+            }
+
+            #display(sender, itemArr, timeOffset) {
+                const html = itemArr.join(" ");
+                const timeout = setTimeout(_ => {
+                    console.log("yay");
+                    if(!sender.#keepGoing) {
+                        return;
+                    }
+
+                    $displayContainer.append(html);
+                }, timeOffset);
+
+                sender.#timeouts.push(timeout);
+            }
+
+            #parse(sender, from, to) {
+                const increment = 20;
+                let cnt = 0;
+                let arr = [];
+                for(let i = from; sender.#keepGoing && i < to; i++) {
+                    const item = sender.#data[i];
+
+                    arr.push(`<div class="display-item"
+                                     data-id="${item.id}"
+                                     data-title="${item.title}"
+                                     data-rating="${item.rating}"
+                                     data-calories="${item.calories}"
+                                     data-protein="${item.protein}"
+                                     data-fat="${item.fat}"
+                                     data-sodium="${item.sodium}"
+                                     data-price="${item.price}">
+                                  <div class="display-header">
+                                    <h5>${item.title}</h5>
+                                  </div>
+                                  <ul class="display-body">
+                                    <li>
+                                      <span>Rating:</span>
+                                      <span>${item.rating}</span>
+                                    </li>
+                                    <li>
+                                      <span>Calorii:</span>
+                                      <span>${item.calories}</span>
+                                    </li>
+                                    <li>
+                                      <span>Proteine:</span>
+                                      <span>${item.protein}</span>
+                                    </li>
+                                    <li>
+                                      <span>Grasimi:</span>
+                                      <span>${item.fat}</span>
+                                    </li>
+                                    <li>
+                                      <span>Sodiu:</span>
+                                      <span>${item.sodium}</span>
+                                    </li>
+                                    <li>
+                                      <span>Pret:</span>
+                                      <span>${item.price}</span>
+                                    </li>
+                                  </ul>
+                                  <div class="display-footer">
+                                    <button class="details">Detalii!</button>
+                                    <button class="add">Adauga!</button>
+                                  </div>
+                                </div>
+                                <script>
+                                  $(function () {
+                                    const id = ${item.id};
+                                    const showDetails = _ => {
+                                        $.ajax({
+                                          type: "GET",
+                                          url: "/customer/product/" + id,
+                                          dataType: 'json',
+                                          success: function (response) {
+                                            console.log(response);
+                                            if (response.redirect) {
+                                              window.location.href = response.redirect;
+                                              return;
+                                            }
+
+                                            $("#modal").html(response.data);
+
+                                            const $modal = document.getElementById('exampleModal');
+                                            const modal = new bootstrap.Modal($modal);
+                                            modal.show();
+                                          },
+                                          error: function (xhr, textStatus, errorThrown) {
+                                            alert('Error! Status = ' + xhr.status);
+                                          }
+                                        });
+                                    }
+                                    const addToCart = async _ => {
+                                        return  $.ajax({
+                                            type: "POST",
+                                            url: \`${cartUrl}/${item.id}\`,
+                                            dataType: 'json'
+                                        });
+                                    }
+                                    setTimeout(_ => {
+                                      $(".display-item[data-id='${item.id}'] .details").on("click", e => {
+                                        e.preventDefault();
+                                        showDetails();
+                                          console.log(id);
+                                      });
+
+                                      $(".display-item[data-id='${item.id}'] .add").on("click", async e => {
+                                          e.preventDefault();
+                                          console.log(id);
+
+                                          const response = await addToCart();
+                                          console.log(response);
+                                          showNotification(response);
+                                      });
+                                    }, 0);
+                                  }); </` + "script>");
+
+                    if((i + 1) % increment) {
+                        continue;
+                    }
+
+                    this.#display(sender, arr, cnt * (i + 100));
+                    cnt++;
+                    arr = [];
+                }
+
+                if(!sender.#keepGoing || arr.length <= 0) {
+                    return;
+                }
+
+                this.#display(sender, arr, cnt * (to + 100));
+            }
+        }
+        
+        class DataFetcher {
+            #renderer;
+            #data;
+
+            stop() {
+                if(this.#renderer) {
+                    this.#renderer.stop();
+                }
+            }
+
+            fetch(filterData) {
+                this.stop();
+
+                this.#data = filterData;
+
+                this.#get(this);
+            }
+
+            async #get(sender) {
+                $displayContainer.html("");
+
+                this.#renderer = new DataRenderer();
+
+                const filterData = sender.#data;
+                const scout = await sender.#scout(filterData);
+                const noItems = scout.noItems;
+
+                const response = await sender.#getData(filterData, 0, noItems);
+                if(response.success) {
+                    this.#renderer.render(noItems, response.data);
+                }
+            }
+
+            #scout(data) {
+                return  $.ajax({
+                    type: "GET",
+                    url: scoutUrl,
+                    data: data,
+                    dataType: 'json'
+                });
+            }
+
+            #getData(data, from, to) {
+                return  $.ajax({
+                    type: "GET",
+                    url: `${dataUrl}/${from}/${to}`,
+                    data: data,
+                    dataType: 'json'
+                });
+            }
+        }
+
+        const fetcher = new DataFetcher();
+
+      /// INIT FILTER SLIDERS
+      setTimeout(_ => {
+        $("#rating-slider").ionRangeSlider({
+          type: "double",
+          skin: "square",
+          min: 0,
+          max: /*[[${maxRating}]]*/ 5,
+          from: 0,
+          to: /*[[${maxRating}]]*/ 5,
+          drag_interval: true,
+          min_interval: null,
+          max_interval: null
+        });
+        $("#calories-slider").ionRangeSlider({
+          type: "double",
+          skin: "square",
+          min: 0,
+          max: /*[[${maxCalories}]]*/ 5,
+          from: 0,
+          to: /*[[${maxCalories}]]*/ 5,
+          drag_interval: true,
+          min_interval: null,
+          max_interval: null
+        });
+        $("#protein-slider").ionRangeSlider({
+          type: "double",
+          skin: "square",
+          min: 0,
+          max: /*[[${maxProtein}]]*/ 5,
+          from: 0,
+          to: /*[[${maxProtein}]]*/ 5,
+          drag_interval: true,
+          min_interval: null,
+          max_interval: null
+        });
+        $("#fat-slider").ionRangeSlider({
+          type: "double",
+          skin: "square",
+          min: 0,
+          max: /*[[${maxFat}]]*/ 5,
+          from: 0,
+          to: /*[[${maxFat}]]*/ 5,
+          drag_interval: true,
+          min_interval: null,
+          max_interval: null
+        });
+        $("#sodium-slider").ionRangeSlider({
+          type: "double",
+          skin: "square",
+          min: 0,
+          max: /*[[${maxSodium}]]*/ 5,
+          from: 0,
+          to: /*[[${maxSodium}]]*/ 5,
+          drag_interval: true,
+          min_interval: null,
+          max_interval: null
+        });
+        $("#price-slider").ionRangeSlider({
+          type: "double",
+          skin: "square",
+          min: 0,
+          max: /*[[${maxPrice}]]*/ 5,
+          from: 0,
+          to: /*[[${maxPrice}]]*/ 5,
+          drag_interval: true,
+          min_interval: null,
+          max_interval: null
+        });
+      }, 0);
+
+      /// INIT PRODUCTS
+      setTimeout(_ => {
+             const data = $("#filter-form").serialize();
+            fetcher.fetch(data);
+      }, 0);
+
+      /// INIT FILTER BUTTONS
+      setTimeout(_ => {
+        $(".filter-btn .reset").on("click", e => {
+            e.preventDefault();
+            
+          $("#nameFilter").val("");
+            $("#rating-slider").data("ionRangeSlider").reset();
+            $("#calories-slider").data("ionRangeSlider").reset();
+            $("#protein-slider").data("ionRangeSlider").reset();
+            $("#fat-slider").data("ionRangeSlider").reset();
+            $("#sodium-slider").data("ionRangeSlider").reset();
+            $("#price-slider").data("ionRangeSlider").reset();
+        });
+
+        $(".filter-btn .apply").on("click", e => {
+            e.preventDefault();
+
+            const data = $("#filter-form").serialize();
+            fetcher.fetch(data);
+        });
+      }, 0);
+    });
+    /*]]>*/
+  </script>
+</div>
+</html>

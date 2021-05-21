@@ -1,0 +1,258 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:fragment="content(args)" th:remove="tag">
+  <div class="container-fluid">
+    <div id="modal"></div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h4 class="card-title ">Generate reports</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-12 reports-btn-container">
+                <button id="report-1">Generate report between hours</button>
+                <button id="report-2">Generate report products</button>
+                <button id="report-3">Generate report client sum</button>
+                <button id="report-4">Generate report products in day</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      $(document).ready(_ => {
+        setTimeout(_ => {
+          $("#report-1").on("click", _ => {
+            const id = 1;
+            $.ajax({
+              type: "GET",
+              url: "/admin/report/" + id,
+              dataType: 'json',
+              success: function(response) {
+                console.log(response);
+                if(response.redirect) {
+                  window.location.href = response.redirect;
+                  return;
+                }
+
+                $("#modal").html(response.data);
+
+                $("#changeForm").validate({
+                  errorClass: "has-error",
+                  validClass: "has-success",
+                  rules: {
+                    startHour: {
+                      required: true
+                    },
+                    endHour: {
+                      required: true
+                    }
+                  },
+                  highlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                  },
+                  unhighlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                  },
+                  submitHandler: function (form) {
+                    const dataToSend = $("#changeForm").serialize();
+                    $.ajax({
+                      type: "POST",
+                      url: "/api/admin/report/" + id,
+                      data: dataToSend,
+                      dataType: 'json',
+                      success: (response) => { submitCallback(null, response); },
+                      error: function(xhr, textStatus, errorThrown) {
+                        alert('Error! Status = ' + xhr.status);
+                      }
+                    });
+                    console.log($("#changeForm").serialize());
+                  }
+                });
+
+                const $modal = document.getElementById('exampleModal');
+                const modal = new bootstrap.Modal($modal);
+                modal.show();
+              },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          });
+          $("#report-2").on("click", _ => {
+            const id = 2;
+            $.ajax({
+              type: "GET",
+              url: "/admin/report/" + id,
+              dataType: 'json',
+              success: function(response) {
+                console.log(response);
+                if(response.redirect) {
+                  window.location.href = response.redirect;
+                  return;
+                }
+
+                $("#modal").html(response.data);
+
+                $("#changeForm").validate({
+                  errorClass: "has-error",
+                  validClass: "has-success",
+                  rules: {
+                    minNo: {
+                      required: true,
+                      digits: true
+                    }
+                  },
+                  highlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                  },
+                  unhighlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                  },
+                  submitHandler: function (form) {
+                    const dataToSend = $("#changeForm").serialize();
+                    $.ajax({
+                      type: "POST",
+                      url: "/api/admin/report/" + id,
+                      data: dataToSend,
+                      dataType: 'json',
+                      success: (response) => { submitCallback(null, response); },
+                      error: function(xhr, textStatus, errorThrown) {
+                        alert('Error! Status = ' + xhr.status);
+                      }
+                    });
+                    console.log($("#changeForm").serialize());
+                  }
+                });
+
+                const $modal = document.getElementById('exampleModal');
+                const modal = new bootstrap.Modal($modal);
+                modal.show();
+              },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          })
+          $("#report-3").on("click", _ => {
+            const id = 3;
+            $.ajax({
+              type: "GET",
+              url: "/admin/report/" + id,
+              dataType: 'json',
+              success: function(response) {
+                console.log(response);
+                if(response.redirect) {
+                  window.location.href = response.redirect;
+                  return;
+                }
+
+                $("#modal").html(response.data);
+
+                $("#changeForm").validate({
+                  errorClass: "has-error",
+                  validClass: "has-success",
+                  rules: {
+                    minOrders: {
+                      required: true,
+                      digits: true
+                    },
+                    minValue: {
+                      required: true
+                    }
+                  },
+                  highlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                  },
+                  unhighlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                  },
+                  submitHandler: function (form) {
+                    const dataToSend = $("#changeForm").serialize();
+                    $.ajax({
+                      type: "POST",
+                      url: "/api/admin/report/" + id,
+                      data: dataToSend,
+                      dataType: 'json',
+                      success: (response) => { submitCallback(null, response); },
+                      error: function(xhr, textStatus, errorThrown) {
+                        alert('Error! Status = ' + xhr.status);
+                      }
+                    });
+                    console.log($("#changeForm").serialize());
+                  }
+                });
+
+                const $modal = document.getElementById('exampleModal');
+                const modal = new bootstrap.Modal($modal);
+                modal.show();
+              },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          })
+          $("#report-4").on("click", _ => {
+            const id = 4;
+            $.ajax({
+              type: "GET",
+              url: "/admin/report/" + id,
+              dataType: 'json',
+              success: function(response) {
+                console.log(response);
+                if(response.redirect) {
+                  window.location.href = response.redirect;
+                  return;
+                }
+
+                $("#modal").html(response.data);
+
+                $("#changeForm").validate({
+                  errorClass: "has-error",
+                  validClass: "has-success",
+                  rules: {
+                    day: {
+                      required: true
+                    }
+                  },
+                  highlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                  },
+                  unhighlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                  },
+                  submitHandler: function (form) {
+                    const dataToSend = $("#changeForm").serialize();
+                    $.ajax({
+                      type: "POST",
+                      url: "/api/admin/report/" + id,
+                      data: dataToSend,
+                      dataType: 'json',
+                      success: (response) => { submitCallback(null, response); },
+                      error: function(xhr, textStatus, errorThrown) {
+                        alert('Error! Status = ' + xhr.status);
+                      }
+                    });
+                    console.log($("#changeForm").serialize());
+                  }
+                });
+
+                const $modal = document.getElementById('exampleModal');
+                const modal = new bootstrap.Modal($modal);
+                modal.show();
+              },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          })
+        }, 0);
+      });
+      /*]]>*/
+    </script>
+  </div>
+</html>

@@ -1,0 +1,147 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:remove="tag">
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">
+            <!--/*@thymesVar id="title" type="java.lang.String"*/-->
+            <th:block th:text="${title}"/>
+          </h5>
+          <button id="closeBtn" type="button" class="close" data-bs-toggle="modal" data-bs-target="#exampleModal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <label for="closeBtn"></label>
+        </div>
+        <form id="changeForm" autocomplete="off">
+          <div id="formContainer"></div>
+          <div class="modal-body">
+            <div class="row">
+              <th:block th:each="field : ${fields}">
+                <th:block th:if="${field.type == 'SIMPLE'}">
+                  <div class="form-group mb-3" th:hidden="${field.hidden}">
+                    <label class="bmd-label-floating"><th:block th:text="${field.label}"/></label>
+                    <input th:name="${field.name}" type="text" class="form-control" th:value="${field.value}" th:readonly="${field.readonly==true}">
+                  </div>
+                </th:block>
+
+                <th:block th:if="${field.type == 'SELECT'}">
+                  <div class="form-group mb-3" th:hidden="${field.hidden}">
+                    <label class="bmd-label-floating"><th:block th:text="${field.label}"/></label>
+                    <select th:name="${field.name}" id="select2-mySelect420MLG" class="form-control" th:data-url="${field.url}" th:data-value="${field.value}" th:readonly="${field.readonly==true}"></select>
+                    <script type="text/javascript">
+                      $(document).ready(function() {
+                        const select = document.getElementById("select2-mySelect420MLG");
+                        const selectObj = $('#select2-mySelect420MLG');
+                        const url = selectObj.data('url');
+                        const value = selectObj.data('value');
+                        $.ajax({
+                          type: "GET",
+                          url: url,
+                          dataType: 'json',
+                          success: (response) => {
+                            response.data.forEach((item) => {
+                              const defaultValue = item.id == value;
+                              let text = "test";
+
+                              if(response.product) {
+                                text = item.name + " (Max. " + item.quantity + " )";
+                              }
+                              if(response.customer) {
+                                text = item.name + " (Id: " + item.id + " )";
+                              }
+
+                              select.options[select.options.length] = new Option(text, item.id, defaultValue, defaultValue);
+                            });
+                          },
+                          error: function (xhr, textStatus, errorThrown) {
+                            alert('Error! Status = ' + xhr.status);
+                          }
+                        });
+                      });
+                    </script>
+                  </div>
+                </th:block>
+
+                <th:block th:if="${field.type == 'DATETIME'}">
+                  <div class="form-group mb-3" th:hidden="${field.hidden}">
+                    <label class="bmd-label-floating"><th:block th:text="${field.label}"/></label>
+                    <input type="text" th:name="${field.name}" class="form-control datetimepicker-input" id="datetimepicker1" data-toggle="datetimepicker" data-target="#datetimepicker1" th:data-value="${field.value}"/>
+                  </div>
+                  <script type="text/javascript">
+                    $(function () {
+                      $('#exampleModal').on('shown.bs.modal', function () {
+                        const obj = $('#datetimepicker1');
+                        const value = obj.data('value');
+                        obj.datetimepicker({
+                          defaultDate: value,//moment().add(1, 'days').set({hour:8,minute:0,second:0,millisecond:0}),
+                          // minDate: moment().add(1, 'days').startOf('day'),
+                          format: "MM/DD/YYYY hh:mm a"
+                        });
+                      });
+                    });
+                  </script>
+                </th:block>
+              </th:block>
+            </div>
+            <div class="row">
+              <div id="myData" th:data-url="${url}"></div>
+              <div class="col-md-12">
+                <label class="bmd-label-floating">Componente</label>
+                <table id="messagesTable" class="table w-100"></table>
+                <script type="text/javascript">
+                  $(function () {
+                    setTimeout(_ => {
+                      const url = $('#myData').data('url');
+                      const $table = $('#messagesTable');
+                      const table = $table.DataTable({
+                        "pageLength": 15,
+                        "lengthChange": false,
+                        "searching": false,
+                        "select": false,
+                        "ordering": false,
+                        "ajax": {
+                          url: url,
+                          type: "GET",
+                          cache: false,
+                          dataSrc: function (json) {
+                            if (!json.success) {
+                              showNotification(json);
+                              return [];
+                            }
+
+                            return json.data;
+                          }
+                        },
+                        "columns": [
+                          {"data": "id", "name": "id", "title": "ID", "width": "40", visible: false},
+                          {"data": "title", "name": "title", "title": "Nume"},
+                          {"data": "rating", "name": "rating", "title": "Rating"},
+                          {"data": "calories", "name": "calories", "title": "Calorii"},
+                          {"data": "protein", "name": "protein", "title": "Proteine"},
+                          {"data": "fat", "name": "fat", "title": "Grasimi"},
+                          {"data": "sodium", "name": "sodium", "title": "Sodiu"},
+                          {"data": "price", "name": "price", "title": "Pret"}
+                        ],
+                        dom: "<'row'<'col-sm-6 dataTables_crud_buttons d-flex flex-row'><'col-sm-6 dataTables_buttons text-right'B>>" +
+                                "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
+                                "<'row'<'col-sm-12'tr>>" +
+                                "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+                        buttons: []
+                      });
+                    }, 0);
+                  });
+                </script>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</html>

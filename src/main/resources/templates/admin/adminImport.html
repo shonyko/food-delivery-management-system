@@ -1,0 +1,53 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:fragment="content(args)" th:remove="tag">
+  <div class="container-fluid">
+    <div id="modal"></div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h4 class="card-title ">Import Products</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-12">
+                <form id="importForm">
+                  <input id="fileInput" name="file" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                  <button id="form-submit-btn">Import!</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(_ => {
+      setTimeout(_ => {
+        $("#form-submit-btn").on("click", e => {
+          e.preventDefault();
+
+          const formData = new FormData();
+          formData.append('file', $("#fileInput").prop("files")[0]);
+
+          $.ajax({
+            type: "POST",
+            url: "/api/admin/import",
+            processData: false, // important
+            contentType: false, // important
+            data: formData,
+            dataType: 'json',
+            success: (response) => { submitCallback(null, response); },
+            error: function(xhr, textStatus, errorThrown) {
+              alert('Error! Status = ' + xhr.status);
+            }
+          });
+        })
+      }, 0);
+    });
+    /*]]>*/
+  </script>
+</div>
+</html>

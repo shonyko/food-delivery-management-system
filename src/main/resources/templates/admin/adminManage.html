@@ -1,0 +1,454 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:fragment="content(args)" th:remove="tag">
+  <div class="container-fluid">
+    <div id="modal"></div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h4 class="card-title ">Base Products</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table id="myDataTable" class="table w-100"></table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 2.5rem; margin-bottom: 40rem">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header card-header-primary">
+            <h4 class="card-title ">Composite Products</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table id="compositeTable" class="table w-100"></table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(_ => {
+      /// BASE PRODUCTS
+      setTimeout(_ => {
+        const $table = $('#myDataTable');
+        const table = $table.DataTable({
+          "pageLength": 15,
+          "lengthChange": false,
+          "searching": true,
+          "select": true,
+          "ajax": {
+            url: "/api/admin/base",
+            type: "GET",
+            dataSrc: function (json) {
+              if(!json.success) {
+                showNotification(json);
+                return [];
+              }
+
+              return json.data;
+            }
+          },
+          "columns": [
+            { "data": "id", "name": "id", "title": "ID", "width": "40", visible: false },
+            { "data": "title", "name": "title", "title": "Nume" },
+            { "data": "rating", "name": "rating", "title": "Rating" },
+            { "data": "calories", "name": "calories", "title": "Calorii" },
+            { "data": "protein", "name": "protein", "title": "Proteine" },
+            { "data": "fat", "name": "fat", "title": "Grasimi" },
+            { "data": "sodium", "name": "sodium", "title": "Sodiu" },
+            { "data": "price", "name": "price", "title": "Pret" }
+          ],
+          dom: "<'row'<'col-sm-6 dataTables_crud_buttons'><'col-sm-6 dataTables_buttons text-right'B>>" +
+                  "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+          buttons: [
+            // "btnCopy", "btnExcel", "btnPDF", "btnPrint"
+          ]
+        });
+
+        table.on( 'select.dt deselect.dt draw.dt', function ( e, dt, type, indexes ) {
+          table.buttons( 1, ['.edit', '.delete'] ).enable(
+                  table.rows( { selected: true } ).indexes().length === 0 ? false : true );
+        });
+
+        new $.fn.dataTable.Buttons( table, {
+          buttons: [
+            { text: "Add", className: "btn btn-primary", action: function(e, dt, node, action) {getAddForm(dt);} },
+            { text: "Edit", className: "btn btn-primary ml-1 edit", action: function(e, dt, node, action) {getUpdateForm(dt);}, attr: {disabled: true} },
+            { text: "Delete", className: "btn btn-primary ml-1 delete", action: function(e, dt, node, action) {deleteUser(dt);}, attr: {disabled: true} }
+          ]
+        } );
+
+        table.buttons( 1, null ).container().prependTo(
+                $(table.table().container()).find(".dataTables_crud_buttons")
+        );
+
+        function getUpdateForm(t) {
+          let target = t.rows({selected: true});
+          if(target && target.data()[0]) {
+            target = target.data()[0];
+            $.ajax({
+              type: "GET",
+              url: "/admin/base/add/" + target['id'],
+              dataType: 'json',
+              success: function(response) {
+                if(response.redirect) {
+                  window.location.href = response.redirect;
+                  return;
+                }
+
+                $("#modal").html(response.data);
+
+                $("#changeForm").validate({
+                  errorClass: "has-error",
+                  validClass: "has-success",
+                  rules: {
+                    title: {
+                      required: true
+                    },
+                    rating: {
+                      required: true
+                    },
+                    calories: {
+                      required: true
+                    },
+                    protein: {
+                      required: true
+                    },
+                    fat: {
+                      required: true
+                    },
+                    sodium: {
+                      required: true
+                    },
+                    price: {
+                      required: true
+                    }
+                  },
+                  highlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                  },
+                  unhighlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                  },
+                  submitHandler: function (form) {
+                    const dataToSend = $("#changeForm").serialize();
+                    $.ajax({
+                      type: "PUT",
+                      url: "/api/admin/base/" + target['id'],
+                      data: dataToSend,
+                      dataType: 'json',
+                      success: (response) => { submitCallback(t, response); },
+                      error: function(xhr, textStatus, errorThrown) {
+                        alert('Error! Status = ' + xhr.status);
+                      }
+                    });
+                    console.log($("#changeForm").serialize());
+                  }
+                });
+
+                const $modal = document.getElementById('exampleModal');
+                const modal = new bootstrap.Modal($modal);
+                modal.show();
+              },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          }
+        }
+        function getAddForm(t) {
+          $.ajax({
+            type: "GET",
+            url: "/admin/base/add",
+            dataType: 'json',
+            success: function(response) {
+              console.log(response);
+              if(response.redirect) {
+                window.location.href = response.redirect;
+                return;
+              }
+
+              $("#modal").html(response.data);
+
+              $("#changeForm").validate({
+                errorClass: "has-error",
+                validClass: "has-success",
+                rules: {
+                  title: {
+                    required: true
+                  },
+                  rating: {
+                    required: true
+                  },
+                  calories: {
+                    required: true
+                  },
+                  protein: {
+                    required: true
+                  },
+                  fat: {
+                    required: true
+                  },
+                  sodium: {
+                    required: true
+                  },
+                  price: {
+                    required: true
+                  }
+                },
+                highlight: function(element, errorClass, validClass) {
+                  $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                },
+                unhighlight: function(element, errorClass, validClass) {
+                  $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                },
+                submitHandler: function (form) {
+                  const dataToSend = $("#changeForm").serialize();
+                  $.ajax({
+                    type: "POST",
+                    url: "/api/admin/base",
+                    data: dataToSend,
+                    dataType: 'json',
+                    success: (response) => { submitCallback(t, response); },
+                    error: function(xhr, textStatus, errorThrown) {
+                      alert('Error! Status = ' + xhr.status);
+                    }
+                  });
+                  console.log($("#changeForm").serialize());
+                }
+              });
+
+              const $modal = document.getElementById('exampleModal');
+              const modal = new bootstrap.Modal($modal);
+              modal.show();
+            },
+            error: function(xhr, textStatus, errorThrown) {
+              alert('Error! Status = ' + xhr.status);
+            }
+          });
+
+        }
+        function deleteUser(t) {
+          let target = t.rows({selected: true});
+          if(target && target.data()[0]) {
+            target = target.data()[0];
+            $.ajax({
+              type: "DELETE",
+              url: "/api/admin/base/" + target['id'],
+              dataType: 'json',
+              success: (response) => { submitCallback(t, response); },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          }
+        }
+      }, 0);
+
+      /// COMPOSITE PRODUCTS
+      setTimeout(_ => {
+        const $table = $('#compositeTable');
+        const table = $table.DataTable({
+          "pageLength": 15,
+          "lengthChange": false,
+          "searching": true,
+          "select": true,
+          "ajax": {
+            url: "/api/admin/composite",
+            type: "GET",
+            dataSrc: function (json) {
+              if(!json.success) {
+                showNotification(json);
+                return [];
+              }
+
+              return json.data;
+            }
+          },
+          "columns": [
+            { "data": "id", "name": "id", "title": "ID", "width": "40", visible: false },
+            { "data": "title", "name": "title", "title": "Nume" },
+            { "data": "rating", "name": "rating", "title": "Rating" },
+            { "data": "calories", "name": "calories", "title": "Calorii" },
+            { "data": "protein", "name": "protein", "title": "Proteine" },
+            { "data": "fat", "name": "fat", "title": "Grasimi" },
+            { "data": "sodium", "name": "sodium", "title": "Sodiu" },
+            { "data": "price", "name": "price", "title": "Pret" }
+          ],
+          dom: "<'row'<'col-sm-6 dataTables_crud_buttons'><'col-sm-6 dataTables_buttons text-right'B>>" +
+                  "<'row'<'col-sm-6'l><'col-sm-6'f>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row'<'col-sm-6'i><'col-sm-6'p>>",
+          buttons: [
+            // "btnCopy", "btnExcel", "btnPDF", "btnPrint"
+          ]
+        });
+
+        table.on( 'select.dt deselect.dt draw.dt', function ( e, dt, type, indexes ) {
+          table.buttons( 1, ['.edit', '.delete'] ).enable(
+                  table.rows( { selected: true } ).indexes().length === 0 ? false : true );
+        } );
+
+        new $.fn.dataTable.Buttons( table, {
+          buttons: [
+            { text: "Add", className: "btn btn-primary", action: function(e, dt, node, action) {getAddForm(dt);} },
+            { text: "Edit", className: "btn btn-primary ml-1 edit", action: function(e, dt, node, action) {getUpdateForm(dt);}, attr: {disabled: true} },
+            { text: "Delete", className: "btn btn-primary ml-1 delete", action: function(e, dt, node, action) {deleteUser(dt);}, attr: {disabled: true} }
+          ]
+        } );
+
+        table.buttons( 1, null ).container().prependTo(
+                $(table.table().container()).find(".dataTables_crud_buttons")
+        );
+
+        function getUpdateForm(t) {
+          let target = t.rows({selected: true});
+          if(target && target.data()[0]) {
+            target = target.data()[0];
+            $.ajax({
+              type: "GET",
+              url: "/admin/composite/add/" + target['id'],
+              dataType: 'json',
+              success: function(response) {
+                if(response.redirect) {
+                  window.location.href = response.redirect;
+                  return;
+                }
+
+                $("#modal").html(response.data);
+
+                $("#changeForm").validate({
+                  errorClass: "has-error",
+                  validClass: "has-success",
+                  rules: {
+                    title: {
+                      required: true
+                    },
+                    rating: {
+                      required: true
+                    }
+                  },
+                  highlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                  },
+                  unhighlight: function(element, errorClass, validClass) {
+                    $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                  },
+                  submitHandler: function (form) {
+                    const dataToSend = $("#changeForm").serialize();
+                    $.ajax({
+                      type: "PUT",
+                      url: "/api/admin/composite/" + target["id"],
+                      data: dataToSend,
+                      dataType: 'json',
+                      success: (response) => { submitCallback(t, response); },
+                      error: function(xhr, textStatus, errorThrown) {
+                        alert('Error! Status = ' + xhr.status);
+                      }
+                    });
+                    console.log($("#changeForm").serialize());
+                  }
+                });
+
+                const $modal = document.getElementById('exampleModal');
+                const modal = new bootstrap.Modal($modal);
+                modal.show();
+              },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          }
+        }
+        function getAddForm(t) {
+          $.ajax({
+            type: "GET",
+            url: "/admin/composite/add",
+            dataType: 'json',
+            success: function(response) {
+              console.log(response);
+              if(response.redirect) {
+                window.location.href = response.redirect;
+                return;
+              }
+
+              $("#modal").html(response.data);
+
+              $("#changeForm").validate({
+                errorClass: "has-error",
+                validClass: "has-success",
+                rules: {
+                  title: {
+                    required: true
+                  },
+                  rating: {
+                    required: true
+                  }
+                },
+                highlight: function(element, errorClass, validClass) {
+                  $(element).closest('.form-group').addClass(errorClass).removeClass(validClass);
+                },
+                unhighlight: function(element, errorClass, validClass) {
+                  $(element).closest('.form-group').addClass(validClass).removeClass(errorClass);
+                },
+                submitHandler: function (form) {
+                  const dataToSend = $("#changeForm").serialize();
+                  $.ajax({
+                    type: "POST",
+                    url: "/api/admin/composite",
+                    data: dataToSend,
+                    dataType: 'json',
+                    success: (response) => { submitCallback(t, response); },
+                    error: function(xhr, textStatus, errorThrown) {
+                      alert('Error! Status = ' + xhr.status);
+                    }
+                  });
+                  console.log($("#changeForm").serialize());
+                }
+              });
+
+              const $modal = document.getElementById('exampleModal');
+              const modal = new bootstrap.Modal($modal);
+              modal.show();
+            },
+            error: function(xhr, textStatus, errorThrown) {
+              alert('Error! Status = ' + xhr.status);
+            }
+          });
+
+        }
+        function deleteUser(t) {
+          let target = t.rows({selected: true});
+          if(target && target.data()[0]) {
+            target = target.data()[0];
+            $.ajax({
+              type: "DELETE",
+              url: "/api/admin/composite/" + target['id'],
+              dataType: 'json',
+              success: (response) => { submitCallback(t, response); },
+              error: function(xhr, textStatus, errorThrown) {
+                alert('Error! Status = ' + xhr.status);
+              }
+            });
+          }
+        }
+      }, 0);
+    });
+    /*]]>*/
+  </script>
+</div>
+</html>

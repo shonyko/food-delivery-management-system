@@ -1,0 +1,62 @@
+@startuml
+
+interface PropertyChangeListener {}
+
+class AdminController {}
+class EmployeeController {}
+class CustomerController {}
+
+class Main {}
+
+Main -> AdminController
+Main --> EmployeeController
+Main -> CustomerController
+
+EmployeeController .|> PropertyChangeListener : implements
+
+AdminController o---> IDeliveryServiceProcessing
+EmployeeController o---> IDeliveryServiceProcessing
+CustomerController o---> IDeliveryServiceProcessing
+
+interface IDeliveryServiceProcessing
+class DeliveryService
+
+class PropertyChangeSupport
+
+DeliveryService ..|> IDeliveryServiceProcessing : implements
+DeliveryService --|> PropertyChangeSupport : extends
+
+class Order {
+    - int id
+    - int clientId
+    - String orderDate
+    + int hashCode()
+}
+
+Order <--o DeliveryService
+
+class MenuItem {
+    + double computePrice()
+}
+
+MenuItem <--o DeliveryService
+
+class BaseProduct {
+    + double computePrice()
+}
+
+class CompositeProduct {
+    + double computePrice()
+}
+
+BaseProduct --|> MenuItem : extends
+CompositeProduct --|> MenuItem : extends
+CompositeProduct o--> MenuItem
+
+class Serializator
+class FileWriter
+
+DeliveryService ---> Serializator
+DeliveryService ---> FileWriter
+
+@enduml

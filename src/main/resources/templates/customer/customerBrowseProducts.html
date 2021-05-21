@@ -1,0 +1,65 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:remove="tag">
+<div th:fragment="content(args)" th:remove="tag">
+  <th:block th:each="item : ${items}">
+    <div class="display-item"
+         th:data-id="${item.id}"
+         th:data-title="${item.title}"
+         th:data-rating="${item.rating}"
+         th:data-calories="${item.calories}"
+         th:data-protein="${item.protein}"
+         th:data-fat="${item.fat}"
+         th:data-sodium="${item.sodium}"
+         th:data-price="${item.price}">
+      <div class="display-header">
+        <h5><th:block th:text="${item.title}"></h5>
+      </div>
+      <ul class="display-body">
+        <li>
+          <span>Rating:</span>
+          <span><th:block th:text="${item.rating}"></span>
+        </li>
+        <li>
+          <span>Calorii:</span>
+          <span><th:block th:text="${item.calories}"></span>
+        </li>
+        <li>
+          <span>Proteine:</span>
+          <span><th:block th:text="${item.protein}"></span>
+        </li>
+        <li>
+          <span>Grasimi:</span>
+          <span><th:block th:text="${item.fat}"></span>
+        </li>
+        <li>
+          <span>Sodiu:</span>
+          <span><th:block th:text="${item.sodium}"></span>
+        </li>
+        <li>
+          <span>Pret:</span>
+          <span><th:block th:text="${item.price}"></span>
+        </li>
+      </ul>
+      <div class="display-footer">
+        <button class="details">Detalii!</button>
+        <button class="add">Adauga!</button>
+      </div>
+    </div>
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      $(function () {
+        const id = /*[[${item.id}]]*/ -1;
+        setTimeout(_ => {
+          $(`.display-item[data-id="${id}"] .details`).on("click", _ => {
+            console.log(id);
+          });
+
+          $(`.display-item[data-id="${id}"] .add`).on("click", _ => {
+            console.log(id);
+          });
+        }, 0);
+      });
+      /*]]>*/
+    </script>
+  </th:block>
+</div>
+</html>

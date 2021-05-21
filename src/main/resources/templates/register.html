@@ -1,0 +1,131 @@
+<!doctype html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <title>Hello, world!</title>
+
+  <th:block th:replace="fragments::css"/>
+  <th:block th:replace="fragments::js"/>
+</head>
+
+<body class="login-container">
+<div class="login">
+  <h1>Register</h1>
+  <form id="loginForm">
+    <div class="form-item">
+      <label>Username</label>
+      <input name="username" type="text">
+    </div>
+    <div class="form-item">
+      <label>Password</label>
+      <input name="password" type="password">
+    </div>
+    <div class="form-item">
+      <button id="register-btn">Rush B!</button>
+    </div>
+  </form>
+</div>
+<div class="register">
+  <h5>Have an account?</h5>
+  <a href="/">Login now!</a>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  $(function () {
+    setTimeout(async _ => {
+      $("#register-btn").on("click", e => {
+        e.preventDefault();
+
+        const formData = $("#loginForm").serialize();
+        $.ajax({
+          type: "POST",
+          url: "/api/accounts/register",
+          dataType: 'json',
+          data: formData,
+          success: (response) => { submitCallback(null, response); },
+          error: function(xhr, textStatus, errorThrown) {
+            alert('Error! Status = ' + xhr.status);
+          }
+        });
+      });
+    }, 0);
+  });
+  /*]]>*/
+  let clear = null;
+  function setClear(value) {
+    clear = value;
+  }
+
+  function doStuff(e, url) {
+    e.preventDefault();
+    // if($(e.target).hasClass("active")) return;
+    // $('#sidebar').find('.active').removeClass("active");
+    // $(e.target).closest("li").addClass("active");
+
+    doMoreStuff(url);
+  }
+
+  function doMoreStuff(url) {
+    $.ajax({
+      type: "GET",
+      url: url,
+      dataType: 'json',
+      success: function(response) {
+        if(response.redirect) {
+          window.location.href = response.redirect;
+          return;
+        }
+
+        clear?.();
+        clear = null;
+
+        $("#content").html(response.data);
+      },
+      error: function(xhr, textStatus, errorThrown) {
+        alert('Error! Status = ' + xhr.status);
+      }
+    });
+  }
+
+  function showNotification(response) {
+    response.type = response.success ? "success" : "danger";
+
+    $.notify({
+      message: response.message
+
+    },{
+      type: response.type,
+      timer: 3000,
+      placement: {
+        from: "bottom",
+        align: "right"
+      }
+    });
+  }
+
+  function submitCallback(table, response, callback) {
+    if(response.redirect) {
+      window.location.href = response.redirect;
+      return;
+    }
+
+    const $modal = document.getElementById('exampleModal');
+    const modal = bootstrap.Modal.getInstance($modal);
+
+    console.log(response);
+    if(response.success == true) {
+      table?.ajax.reload(false, null);
+    }
+
+    callback?.();
+
+    modal?.hide();
+
+    showNotification(response);
+  }
+</script>
+</body>
+
+</html>

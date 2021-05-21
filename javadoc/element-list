@@ -1,0 +1,12 @@
+org.alexk
+org.alexk.business
+org.alexk.business.models
+org.alexk.business.models.enums
+org.alexk.business.models.misc
+org.alexk.business.models.viewModels
+org.alexk.data
+org.alexk.presentation
+org.alexk.presentation.api
+org.alexk.presentation.javaStuff
+org.alexk.springStuff
+org.alexk.utils

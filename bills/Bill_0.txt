@@ -1,0 +1,6 @@
+Order No. 0
+Client: 2, Total price: 448.000000
+
+Products:
+Grog, Quantity: 6, Price: 168.000000
+maiestrie, Quantity: 2, Price: 280.000000

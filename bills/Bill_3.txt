@@ -1,0 +1,5 @@
+Order No. 3
+Client: 3, Total price: 98.000000
+
+Products:
+aghiasma, Quantity: 2, Price: 98.000000
